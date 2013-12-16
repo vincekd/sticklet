@@ -1,0 +1,38 @@
+html,body {
+    background-color: #333;
+}
+#mainWrapper .well {
+    background-color: #FFF;
+}
+.scard {
+    padding: 10px;
+    margin: 10px 0 0 0;
+    border-radius: 10px;
+}
+.stag {
+    padding: 2px;
+    margin: 2px;
+    border: 1px solid #CCC;
+    background-color: #AAA;
+    border-radius: 5px;
+    display: inline-block;
+    color: inherit;
+}
+.scolor1 {
+    background-color: #F7977A;
+}
+.scolor2 {
+    background-color: #C5E3BF;
+}
+.scolor3 {
+    background-color: #c1F0F6;
+}
+.scolor4 {
+    background-color: #FFF79A;
+}
+.scolor5 {
+    background-color: #FDC68A;
+}
+.scolor6 {
+    background-color: #D8BFD8;
+}

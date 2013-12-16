@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sticklet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="notes">
+    <meta name="author" content="vincent dumas">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" type="text/css" href="css/notes.css">
+    <link rel="stylesheet" type="text/css" href="css/theme.css">
+  </head>
+  <body>
+    <div id="mainWrapper" class="container-fluid">
+      <div id="top-bar" class="well">
+        <span class="heavy-text">Sticklet</span>
+        <div class="dropdown pull-right">
+          <a class="btn btn-small" data-toggle="dropdown">
+            <i class="icon-cog"></i>
+          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="javascript:void(0);">Settings</a>
+            </li>
+            <li>
+              <a href="javascript:void(0);">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div id="content-area" class="row-fluid">
+        <div id="left-bar" class="span3 well">
+          <div class="notebooks-controls clearfix">
+            <div class="clearfix">
+              <div class="dropdown pull-left">
+                <span class="sort-control btn btn-small" data-toggle="dropdown">
+                  <span class="caret"></span>
+                  <span>Sort</span>
+                </span>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="javascript:void(0)" data-type="notebook"
+                       data-sort-by="default">Default</a>
+                  </li>
+                  <li class="dropdown-submenu">
+                    <a href="javascript:void(0)" data-toggle="dropdown">Updated</a>
+                    <ul class="dropdown-menu">
+                      <li><a href="javascript:void(0)"
+                             data-type="notebook"
+                             data-direction="desc"
+                             data-sort-by="updated">Desc</a>
+                      </li>
+                      <li><a href="javascript:void(0)"
+                             data-type="notebook"
+                             data-direction="asc"
+                             data-sort-by="updated">Asc</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="dropdown-submenu">
+                    <a href="javascript:void(0)" data-toggle="dropdown">Created</a>
+                    <ul class="dropdown-menu">
+                      <li><a href="javascript:void(0)"
+                             data-type="notebook"
+                             data-direction="desc"
+                             data-sort-by="created">Desc</a>
+                      </li>
+                      <li><a href="javascript:void(0)"
+                             data-type="notebook"
+                             data-direction="asc"
+                             data-sort-by="created">Asc</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0)" data-type="notebook"
+                       data-sort-by="color">Color</a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0)" data-type="notebook"
+                       data-sort-by="title">Title</a>
+                  </li>
+                </ul>
+              </div>
+              <button class="btn btn-small pull-right createNotebook">New Notebook</button>
+            </div>
+            <div class="span12 clearfix">
+              <div class="span6 current-sort-area">
+                <span class="medium-text">Sort: </span>
+                <span class="current-sort">default</span>
+              </div>
+              <!-- <div class="span6 current-filter-area"> -->
+              <!--   <span class="medium-text">Filter: </span> -->
+              <!--   <span class="current-filter">default</span> -->
+              <!-- </div> -->
+            </div>
+          </div>
+          <div class="notebooks"></div>
+        </div>
+        <div id="right-bar" class="span9 well" data-notebook-id="">
+          <div class="note-controls">
+            <div>Sort</div>
+            <div class="btn createNote">New Note</div>
+          </div>
+          <div class="notes"></div>
+        </div>
+      </div>
+    </div>
+    <script type="text/template" id="notebookTemplate">
+      <div class="notebook scard <%= color %>"
+           data-notebook-id="<%= id %>"
+           data-notebook-index="<%= index %>"
+           data-notebook-created="<%= created %>" 
+           data-notebook-updated="<%= updated %>"
+           data-notebook-noteCount="<%= noteCount %>"
+           data-notebook-color="<%= color %>"
+           data-notebook-firstnote="<%= firstNote %>"
+           data-notebook-title="<%= escape(title) %>">
+        <div class="notebook-context-menu">
+          <div class="dropdown pull-right">
+            <a href="javascript:void(0);" class="notebook-context-icon" data-toggle="dropdown">
+              <i class="icon-chevron-down"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <div class="color-picker">
+                  <% _(sticklet.colors).each(function(colorCl, i) { %><div class="color-select <%= colorCl %>"></div><% }); %>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="notebook-head">
+          <div class="notebook-title">
+            <span class="medium-text">Title: </span>
+            <a href="#nb=<%= id %>&n=<%= firstNote %>&a="><%= title %></a>
+          </div>
+          <div class="notebook-note-count"><%= noteCount %> notes</div>
+        </div>
+        <div class="notebook-body">
+          <div class="notebook-updated">
+            <span class="medium-text">updated:</span>
+            <span><%= displayDate %></span>
+          </div>
+          <div class="notebook-description">
+            <span class="medium-text">Description:</span>
+            <p><%= description %></p>
+          </div>
+          <div class="notebook-tags">
+            <span class="medium-text">Tags: </span>
+            <span>
+              <% _(tags).each(function(tag) { %>
+              <a href="javascript:void(0);"
+                 class="notebook-tag stag"
+                 data-tag-id="<%= tag.id %>"
+                 data-filter-by="tag"
+                 data-type="notebook"><%= tag.name %></a>
+              <% }); %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
+    <script type="text/template" id="noteTemplate">
+      <div class="note scard <%= color %>"
+           data-note-id="<%= id %>"
+           data-note-index="<%= index %>"
+           data-notebook-id="<% notebook %>"
+           data-notebook-created="<%= created %>" 
+           data-notebook-updated="<%= updated %>"
+           data-note-color="<% color %>"
+           data-note-content="<%= escape(content) %>"
+           data-note-title="<% escape(title) %>">
+        <div class="note-head">
+          <div class="note-title">
+            <span class="medium-text">Title: </span>
+            <span class="note-title-inline"><%= title %></span>
+            <span class="note-title-input">
+              <input type="text" value="<%= title %>"/>
+            </span>
+          </div>
+        </div>
+        <div class="note-body">
+          <div class="note-content">
+            <span class="medium-text">Content: </span>
+            <p class="note-content-inline"><%= content %></p>
+            <textarea rows="8" class="note-content-textarea textarea span12"><%= content %></textarea>
+          </div>
+        </div>
+      </div>
+    </script>
+  </body>
+  <script type="text/javascript" src="js/lib/hash.js"></script>
+  <script type="text/javascript" src="js/lib/jquery-2.0.0.min.js"></script>
+  <script type="text/javascript" src="js/lib/underscore.js"></script>
+  <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/lib/dom.js"></script>
+  <script type="text/javascript" src="js/notes.js"></script>
+</html>

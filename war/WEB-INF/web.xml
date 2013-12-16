@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	<filter>
+	    <filter-name>StripesFilter</filter-name>
+	    <filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+	    
+	    <init-param>
+	        <param-name>ActionResolver.Packages</param-name>
+	        <param-value>com.sticklet.action</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	        <param-name>MultipartWrapperFactory.Class</param-name>
+	        <param-value>com.sticklet.exclude.EmptyMultipartWrapper</param-value>
+	    </init-param>
+	</filter>
+	
+	<filter-mapping>
+	    <filter-name>StripesFilter</filter-name>
+	    <servlet-name>DispatcherServlet</servlet-name>
+	    <dispatcher>REQUEST</dispatcher>
+	    <dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+	
+	<servlet>
+	    <servlet-name>DispatcherServlet</servlet-name>
+	    <servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+	    <load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<servlet-mapping>
+	    <servlet-name>DispatcherServlet</servlet-name>
+	    <url-pattern>/*</url-pattern>
+	</servlet-mapping>
+<!-- 	<servlet>
+		<servlet-name>Notebook</servlet-name>
+		<servlet-class>com.sticklet.servlet.NotebookServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Notebook</servlet-name>
+		<url-pattern>/notebook</url-pattern>
+		<url-pattern>/notebook/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>Note</servlet-name>
+		<servlet-class>com.sticklet.servlet.NoteServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Note</servlet-name>
+		<url-pattern>/note</url-pattern>
+		<url-pattern>/note/*</url-pattern>
+	</servlet-mapping> -->
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+</web-app>
