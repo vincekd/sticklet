@@ -36,24 +36,7 @@
 	    <servlet-name>DispatcherServlet</servlet-name>
 	    <url-pattern>/*</url-pattern>
 	</servlet-mapping>
-<!-- 	<servlet>
-		<servlet-name>Notebook</servlet-name>
-		<servlet-class>com.sticklet.servlet.NotebookServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>Notebook</servlet-name>
-		<url-pattern>/notebook</url-pattern>
-		<url-pattern>/notebook/*</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>Note</servlet-name>
-		<servlet-class>com.sticklet.servlet.NoteServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>Note</servlet-name>
-		<url-pattern>/note</url-pattern>
-		<url-pattern>/note/*</url-pattern>
-	</servlet-mapping> -->
+
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>

@@ -1,6 +1,7 @@
 package com.sticklet.action.base;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -12,26 +13,36 @@ import net.sourceforge.stripes.action.RedirectResolution;
 import net.sourceforge.stripes.action.Resolution;
 import net.sourceforge.stripes.action.StreamingResolution;
 
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
 
 public abstract class BaseActionBean implements ActionBean {
 	protected ActionBeanContext context;
-
-	
+	protected User user;
+	protected Logger logger = Logger.getLogger(this.getClass().getName());
 
     @DefaultHandler
     public Resolution directByMethod() {
-    	switch (context.getRequest().getMethod()) {
-    	case "put":
-    		return this.doPut();
-    	case "post":
-    		return this.doPost();
-    	case "delete":
-    		return this.doDelete();
-    	case "get":
-    	default:
-    		return this.doGet();
-    	}
+    	UserService userService = UserServiceFactory.getUserService();
+    	user = userService.getCurrentUser();
+    	if (user != null) {
+        	switch (context.getRequest().getMethod()) {
+        	case "put":
+        		return this.doPut();
+        	case "post":
+        		return this.doPost();
+        	case "delete":
+        		return this.doDelete();
+        	case "get":
+        	default:
+        		return this.doGet();
+        	}
+        } else {
+        	//redirect(userService.createLoginURL("/"));
+        }
+        return null;
     }
 
     public Resolution doPut() {
