@@ -1,41 +1,80 @@
 package com.sticklet.model.base;
 
 import java.util.Date;
+import java.util.HashMap;
 
-import javax.jdo.annotations.IdGeneratorStrategy;
-import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
-@MappedSuperclass
 public abstract class BaseModel {
-	//attributes
-	@PrimaryKey
-	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	public Key key;
+	protected DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+	protected Entity entity;
+	protected String modelName = this.getClass().getSimpleName();
 
-	public Date updated;
+	public BaseModel() {
+		entity = new Entity(modelName);
+		setCreated(new Date());
+	}
 
-    @PrePersist
-    protected void onCreate() {
-        created = new Date();
-    }
-    
-	public Date created;
+	public BaseModel(Entity entity) {
+		if (entity == null) {
+			throw new NullPointerException();
+		}
+		this.entity = entity;
+	}
+	
+	public Entity getEntity() {
+		return entity;
+	}
+	public void setEntity(Entity entity) {
+		this.entity = entity;
+	}
+
+	public Key getKey() {
+		return entity.getKey();
+	}
+
+	private void setCreated(Date date) {
+		entity.setProperty("created", date);
+	}
+
+	public Date getCreated() {
+		return (Date)entity.getProperty("created");
+	}
+
+	public void setUpdated(Date date) {
+		entity.setProperty("updated", date);
+	}
+	public Date getUpdated() {
+		return (Date)entity.getProperty("updated");
+	}
+
+	@PrePersist
+	protected void onCreate() {
+		setCreated(new Date());
+	}
 
     @PreUpdate
     protected void onUpdate() {
-        updated = new Date();
+        setUpdated(new Date());
     }
-    
-    @Transient
+
     @Override
     public String toString() {
-    	return this.getClass().getSimpleName() + ": " + this.key;
+    	//return modelName + ": " + entity.getKey();
+    	return modelName + ": " + getKey();
+    }
+    
+    public HashMap<String, Object> toHashMap() {
+    	HashMap<String, Object> map = new HashMap<String, Object>();
+    	map.put("type", entity.getKind());
+    	map.put("key", KeyFactory.keyToString(getKey()));
+    	return map;
     }
 }

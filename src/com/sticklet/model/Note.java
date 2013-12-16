@@ -1,34 +1,50 @@
 package com.sticklet.model;
 
-import java.util.Set;
-
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-
+import com.google.appengine.api.datastore.Entity;
 import com.sticklet.model.base.BaseModel;
 
-@Entity
 public class Note extends BaseModel {
 	
 	public Note() {
 		
 	}
 	
-	String title;
+	public Note(Entity entity) {
+		super(entity);
+	}
 	
-	@Lob
-	String content;
+	//String title;
+	public void setTitle(String title) {
+		entity.setProperty("title", title);
+	}
+	public String getTitle() {
+		return (String)entity.getProperty("title");
+	}
 	
-	@ManyToOne(fetch=FetchType.EAGER)
-	@JoinColumn(name="notebook_id", nullable=false, updatable=true)
-	Notebook notebook;
+	//String content;
+	public void setContent(String content) {
+		entity.setProperty("content", content);
+	}
+	public String getContent() {
+		return (String)entity.getProperty("content");
+	}
 	
-	int color;
+	//Notebook notebook;
+	public void setNotebook(Notebook notebook) {
+		entity.setProperty("notebook", notebook);
+	}
+	public Notebook getNotebook() {
+		return (Notebook)entity.getProperty("notebook");
+	}
 	
-	@ManyToMany(fetch=FetchType.EAGER)
-	Set<Tag> tags;
+	//int color;
+	public void setColor(Integer color) {
+		entity.setProperty("color", color);
+	}
+	public Integer getColor() {
+		return (Integer)entity.getProperty("color");
+	}
+	
+//	@ManyToMany(fetch=FetchType.EAGER)
+//	Set<Tag> tags;
 }

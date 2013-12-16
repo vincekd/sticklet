@@ -19,16 +19,17 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
 
 public abstract class BaseActionBean implements ActionBean {
+	protected Logger logger = Logger.getLogger(this.getClass().getName());
 	protected ActionBeanContext context;
 	protected User user;
-	protected Logger logger = Logger.getLogger(this.getClass().getName());
 
     @DefaultHandler
     public Resolution directByMethod() {
     	UserService userService = UserServiceFactory.getUserService();
     	user = userService.getCurrentUser();
-    	if (user != null) {
-        	switch (context.getRequest().getMethod()) {
+    	logger.info(user != null ? user.toString() : "no user");
+    	//if (user != null) {
+        	switch (context.getRequest().getMethod().toLowerCase()) {
         	case "put":
         		return this.doPut();
         	case "post":
@@ -39,10 +40,10 @@ public abstract class BaseActionBean implements ActionBean {
         	default:
         		return this.doGet();
         	}
-        } else {
-        	//redirect(userService.createLoginURL("/"));
-        }
-        return null;
+    //} else {
+        //	redirect(userService.createLoginURL("/"));
+      //  }
+        //return null;
     }
 
     public Resolution doPut() {
