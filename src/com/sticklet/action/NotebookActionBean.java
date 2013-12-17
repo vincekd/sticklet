@@ -57,6 +57,9 @@ public class NotebookActionBean extends BaseActionBean {
 		HashMap<String, Object> json = getRequestData();
 		
 		boolean success = notebook.setProp((String)json.get("prop"), json.get("value"));
+		if (success) {
+			notebookDao.save(notebook);
+		}
 		map.put("success", success);
 
 		//TODO: notify websockets

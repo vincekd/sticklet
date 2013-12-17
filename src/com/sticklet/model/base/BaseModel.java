@@ -3,6 +3,7 @@ package com.sticklet.model.base;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -15,6 +16,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.sticklet.util.StringUtil;
 
 public abstract class BaseModel {
+	protected Logger logger = Logger.getLogger(this.getClass().getName());
 	protected DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	protected Entity entity;
 	protected String modelName = this.getClass().getSimpleName();
@@ -37,15 +39,21 @@ public abstract class BaseModel {
 			
 			Method method = this.getClass().getMethod("get" + StringUtil.capitalize(prop), clazzes);
 			Class<?> returnType = method.getReturnType();
+			
+			Object curValue = method.invoke(this);
 
 			clazzes = new Class<?>[1];
 			clazzes[0] = returnType;
 
 			method = this.getClass().getMethod("set" + StringUtil.capitalize(prop), clazzes);
-			//Integer.parseInt((String)value);
-			
-			method.invoke(this, returnType.cast(value));
-			return true;
+			if (returnType.equals(Integer.class) && value instanceof Double) {
+				value = ((Double)value).intValue();
+			}
+
+			if (curValue != null && value == null || value != null && curValue == null || !curValue.equals(value)) {
+				method.invoke(this, returnType.cast(value));
+				return true;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

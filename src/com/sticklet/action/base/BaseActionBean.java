@@ -75,8 +75,8 @@ public abstract class BaseActionBean implements ActionBean {
     		//TODO: finish this
     		Gson gson = new Gson();
     		map = gson.fromJson(data, HashMap.class);
-    		JSONObject json = gson.fromJson(data, JSONObject.class);
-    		logger.info(json.toString());
+    		//JSONObject json = gson.fromJson(data, JSONObject.class);
+    		//logger.info(json.toString());
     	} catch (Exception e) {
     		e.printStackTrace();
     	}

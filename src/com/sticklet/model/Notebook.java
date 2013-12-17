@@ -41,7 +41,11 @@ public class Notebook extends BaseModel {
 		entity.setProperty("color", color);
 	}
 	public Integer getColor() {
-		return (Integer)entity.getProperty("color");
+		Long l = (Long)entity.getProperty("color");
+		if (l != null) {
+			return (int)((long)l);
+		}
+		return null;
 	}
 	
 	public Integer getNoteCount() {
