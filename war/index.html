@@ -123,9 +123,7 @@
             </a>
             <ul class="dropdown-menu">
               <li>
-                <div class="color-picker">
-                  <% _(sticklet.colors).each(function(colorCl, i) { %><div class="color-select <%= colorCl %>"></div><% }); %>
-                </div>
+				<%= sticklet.getColorPicker() %>
               </li>
             </ul>
           </div>
@@ -161,6 +159,11 @@
         </div>
       </div>
     </script>
+    <script type="text/template" id="colorPickerTemplate">
+		<div class="color-picker">
+        	<% _(colors).each(function(colorCl, i) { %><div class="color-select <%= colorCl %>" data-color-id="<%= (i + 1) %>"></div><% }); %>
+        </div>
+	</script>
     <script type="text/template" id="noteTemplate">
       <div class="note scard <%= color %>"
            data-note-id="<%= id %>"

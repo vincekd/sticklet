@@ -1,5 +1,6 @@
 package com.sticklet.model.base;
 
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -11,6 +12,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.sticklet.util.StringUtil;
 
 public abstract class BaseModel {
 	protected DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -28,6 +30,27 @@ public abstract class BaseModel {
 		}
 		this.entity = entity;
 	}
+
+	public boolean setProp(String prop, Object value) {
+		try {
+			Class<?>[] clazzes = {};//new Class<?>[1];
+			
+			Method method = this.getClass().getMethod("get" + StringUtil.capitalize(prop), clazzes);
+			Class<?> returnType = method.getReturnType();
+
+			clazzes = new Class<?>[1];
+			clazzes[0] = returnType;
+
+			method = this.getClass().getMethod("set" + StringUtil.capitalize(prop), clazzes);
+			//Integer.parseInt((String)value);
+			
+			method.invoke(this, returnType.cast(value));
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	public Entity getEntity() {
 		return entity;
@@ -35,9 +58,13 @@ public abstract class BaseModel {
 	public void setEntity(Entity entity) {
 		this.entity = entity;
 	}
-
+	
 	public Key getKey() {
 		return entity.getKey();
+	}
+
+	public String getKeyStr() {
+		return KeyFactory.keyToString(entity.getKey());
 	}
 
 	private void setCreated(Date date) {

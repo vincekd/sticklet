@@ -1,10 +1,12 @@
 package com.sticklet.model;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.sticklet.dao.NotebookDao;
 import com.sticklet.model.base.BaseModel;
 
 public class Note extends BaseModel {
-	
+	private static NotebookDao notebookDao = new NotebookDao();
 	public Note() {
 		
 	}
@@ -31,10 +33,14 @@ public class Note extends BaseModel {
 	
 	//Notebook notebook;
 	public void setNotebook(Notebook notebook) {
-		entity.setProperty("notebook", notebook);
+		entity.setProperty("notebook", notebook.getKey());
 	}
 	public Notebook getNotebook() {
-		return (Notebook)entity.getProperty("notebook");
+		Key key = (Key)entity.getProperty("notebook");
+		if (key != null) {
+			return (Notebook)notebookDao.find(key);
+		}
+		return null;
 	}
 	
 	//int color;

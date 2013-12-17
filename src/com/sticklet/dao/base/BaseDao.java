@@ -8,9 +8,12 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.sticklet.model.base.BaseModel;
 
 
@@ -35,13 +38,33 @@ public abstract class BaseDao<T> {
 	}
 	
 	public T find(String key) {
+		return find(KeyFactory.stringToKey(key));
+	}
+
+	public T find(Key key) {
 		Entity entity;
 		try {
-			entity = datastore.get(KeyFactory.stringToKey(key));
+			entity = datastore.get(key);
 		} catch (EntityNotFoundException e) {
 			return null;
 		}
 		return getInstanceFromEntity(entity);
+	}
+	
+	public List<T> findAllBy(String name, Object obj) {
+		List<T> models = new ArrayList<T>();
+		try {
+			//Query query = new Query(entityClass.getSimpleName()).addFilter(name, FilterOperator.EQUAL, obj);
+			Query query = new Query(entityClass.getSimpleName()).setFilter(
+					new FilterPredicate(name, FilterOperator.EQUAL, obj));
+			PreparedQuery pq = datastore.prepare(query);
+			for (Entity entity : pq.asIterable()) {
+				models.add(getInstanceFromEntity(entity));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return models;
 	}
 	
 	public List<T> fetch() {

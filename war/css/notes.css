@@ -13,7 +13,7 @@ html,body {
 
     }
         #content-area > * {
-
+			height: 100%;
         }
         #left-bar {
             overflow-y: auto;

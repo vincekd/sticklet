@@ -17,6 +17,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
+import com.google.gson.Gson;
 
 public abstract class BaseActionBean implements ActionBean {
 	protected Logger logger = Logger.getLogger(this.getClass().getName());
@@ -27,7 +28,8 @@ public abstract class BaseActionBean implements ActionBean {
     public Resolution directByMethod() {
     	UserService userService = UserServiceFactory.getUserService();
     	user = userService.getCurrentUser();
-    	logger.info(user != null ? user.toString() : "no user");
+    	logger.info(context.getRequest().getMethod().toLowerCase());
+    	//logger.info(user != null ? user.toString() : "no user");
     	//if (user != null) {
         	switch (context.getRequest().getMethod().toLowerCase()) {
         	case "put":
@@ -66,6 +68,21 @@ public abstract class BaseActionBean implements ActionBean {
     	return null;
     }
 
+    public HashMap<String, Object> getRequestData() {
+    	String data = context.getRequest().getParameter("data");
+    	HashMap<String, Object> map = null;
+    	try {
+    		//TODO: finish this
+    		Gson gson = new Gson();
+    		map = gson.fromJson(data, HashMap.class);
+    		JSONObject json = gson.fromJson(data, JSONObject.class);
+    		logger.info(json.toString());
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    	return map;
+    }
+
     public Resolution stream(String json) {
         return new StreamingResolution("application/json", json);
     }
@@ -85,15 +102,15 @@ public abstract class BaseActionBean implements ActionBean {
     public Resolution redirect(String url) {
         return new RedirectResolution(url);
     }
-    
-	public ActionBeanContext getContext() {
-		return context;
-	}
-	
+
 	public void setResponseNotFound() {
 		context.getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
 	}
-	
+
+	public ActionBeanContext getContext() {
+		return context;
+	}
+
 	public void setContext(ActionBeanContext context) {
 		this.context = context;
 	}

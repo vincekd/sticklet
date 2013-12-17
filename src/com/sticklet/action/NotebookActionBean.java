@@ -7,6 +7,7 @@ import java.util.List;
 import net.sourceforge.stripes.action.Resolution;
 import net.sourceforge.stripes.action.UrlBinding;
 
+import com.google.appengine.labs.repackaged.org.json.JSONObject;
 import com.sticklet.action.base.BaseActionBean;
 import com.sticklet.dao.NotebookDao;
 import com.sticklet.model.Notebook;
@@ -18,9 +19,9 @@ public class NotebookActionBean extends BaseActionBean {
 
 	//@DefaultHandler
 	public Resolution doGet() {
-		HashMap<String, Object> map = new HashMap<String, Object>();
-		logger.info("notebook: " + notebookKey);
+		//logger.info("notebook: " + notebookKey);
 		if (notebookKey == null) {
+			HashMap<String, Object> map = new HashMap<String, Object>();
 			//get all
 			List<HashMap<String, Object>> out = new ArrayList<HashMap<String, Object>>();
 			List<Notebook> notebooks = notebookDao.fetch();
@@ -28,29 +29,49 @@ public class NotebookActionBean extends BaseActionBean {
 				out.add(notebooks.get(i).toHashMap());
 			}
 			map.put("notebooks", out);
-		} else {
-			//find notebooks
-			Notebook notebook = notebookDao.find(notebookKey);
-			map.put("notebook", (notebook != null ? notebook.toHashMap() : null));
+			return streamJSON(map);
 		}
-
-		return streamJSON(map);
+		//find notebook
+		Notebook notebook = getNotebook();
+		return sendNotebook(notebook);
 	}
 	
 	public Resolution doPost() {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		Notebook notebook = new Notebook();
-		notebook.setTitle("testing");
+		notebook.setTitle("New Notebook");
+		notebook.setDescription("What kinds of notes do I hold?");
 		notebookDao.save(notebook);
-		logger.info(notebook.toString());
 		map.put("notebook", notebook.toHashMap());
-		logger.info(notebook.toHashMap().toString());
+		//TODO: notify websockets
+		return streamJSON(map);
+	}
+	
+	public Resolution doPut() {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		Notebook notebook = getNotebook();
+		//get sent data
+//		String prop = context.getRequest().getParameter("prop");
+//		Object value = context.getRequest().getParameter("value");
+
+		HashMap<String, Object> json = getRequestData();
+		
+		boolean success = notebook.setProp((String)json.get("prop"), json.get("value"));
+		map.put("success", success);
+
+		//TODO: notify websockets
 		return streamJSON(map);
 	}
 
 	private Notebook getNotebook() {
-		//return notebookDao.find(notebookKey);
-//		return DatestoreKeyFactory.stringToKey(notebookKey));
-		return null;
+		Notebook notebook = notebookDao.find(notebookKey);
+		return notebook;
+	}
+	private Resolution sendNotebook(Notebook notebook) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> nbMap = (notebook != null ? notebook.toHashMap() : null);
+		nbMap.put("notes", notebook.getNotes());
+		map.put("notebook", nbMap);
+		return streamJSON(map);
 	}
 }
