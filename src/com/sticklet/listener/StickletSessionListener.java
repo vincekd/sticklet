@@ -16,27 +16,29 @@ import com.sticklet.model.User;
 public class StickletSessionListener implements HttpSessionListener {
 	protected Logger logger = Logger.getLogger(this.getClass().getName());
 
+	//NOT CALLED IN GAE, just dev
+	
 	@Override
     public void sessionCreated(HttpSessionEvent se) {
-		UserService userService = UserServiceFactory.getUserService();
-		com.google.appengine.api.users.User googleUser = userService.getCurrentUser();
-		UserDao userDao = new UserDao();
-		User user = userDao.findBy("googleUserId", googleUser.getUserId());
-		logger.info(googleUser.getUserId());
-		if (user == null) {
-			logger.info("creating new user");
-			user =  new User();
-			user.setGoogleUserId(googleUser.getUserId());
-			user.setName(googleUser.getNickname());
-			user.setEmail(googleUser.getEmail());
-			userDao.save(user);
-		}
-		logger.info(user.toString());
-		se.getSession().setAttribute(StickletConstants.SESSION_USER, user);
+//		UserService userService = UserServiceFactory.getUserService();
+//		com.google.appengine.api.users.User googleUser = userService.getCurrentUser();
+//		UserDao userDao = new UserDao();
+//		User user = userDao.findBy("googleUserId", googleUser.getUserId());
+//		logger.info(googleUser.getUserId());
+//		if (user == null) {
+//			logger.info("creating new user");
+//			user =  new User();
+//			user.setGoogleUserId(googleUser.getUserId());
+//			user.setName(googleUser.getNickname());
+//			user.setEmail(googleUser.getEmail());
+//			userDao.save(user);
+//		}
+//		logger.info(user.toString());
+//		se.getSession().setAttribute(StickletConstants.SESSION_USER, user);
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
-    	se.getSession().setAttribute("user", null);
+    	//se.getSession().setAttribute("user", null);
     }
 }

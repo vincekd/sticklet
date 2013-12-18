@@ -59,7 +59,7 @@
 	<listener>
 	 	<listener-class>com.sticklet.listener.StickletContextListener</listener-class>
   	</listener>
-  	    <listener>
-        <listener-class>com.sticklet.listener.StickletSessionListener</listener-class>
-    </listener>
+<!--   	<listener> -->
+<!--         <listener-class>com.sticklet.listener.StickletSessionListener</listener-class> -->
+<!--     </listener> -->
 </web-app>

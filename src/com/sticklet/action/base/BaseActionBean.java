@@ -1,6 +1,5 @@
 package com.sticklet.action.base;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -19,6 +18,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
 import com.google.gson.Gson;
 import com.sticklet.constants.StickletConstants;
+import com.sticklet.dao.UserDao;
 import com.sticklet.model.User;
 
 public abstract class BaseActionBean implements ActionBean {
@@ -30,14 +30,14 @@ public abstract class BaseActionBean implements ActionBean {
 	
 	public BaseActionBean() {
 		super();
-		googleUser = userService.getCurrentUser();
 	}
 
     @DefaultHandler
     public Resolution directByMethod() {
-    	Principal userPrincipal = context.getRequest().getUserPrincipal();
-    	if (userPrincipal != null) {
-    		user = (User)context.getRequest().getSession().getAttribute(StickletConstants.SESSION_USER);
+    	if (userService.isUserLoggedIn()) {
+
+    		setUser();
+
         	switch (context.getRequest().getMethod().toLowerCase()) {
         	case "put":
         		return this.doPut();
@@ -49,10 +49,8 @@ public abstract class BaseActionBean implements ActionBean {
         	default:
         		return this.doGet();
         	}
-    	} else {
-        	redirect(userService.createLoginURL("/"));
     	}
-        return null;
+    	return logout();
     }
 
     public Resolution doPut() {
@@ -79,11 +77,8 @@ public abstract class BaseActionBean implements ActionBean {
     	String data = context.getRequest().getParameter("data");
     	HashMap<String, Object> map = null;
     	try {
-    		//TODO: finish this
     		Gson gson = new Gson();
     		map = gson.fromJson(data, HashMap.class);
-    		//JSONObject json = gson.fromJson(data, JSONObject.class);
-    		//logger.info(json.toString());
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
@@ -120,5 +115,30 @@ public abstract class BaseActionBean implements ActionBean {
 
 	public void setContext(ActionBeanContext context) {
 		this.context = context;
+	}
+	
+	private void setUser() {
+		//user = (User)context.getRequest().getSession().getAttribute(StickletConstants.SESSION_USER);
+		//if (user == null) {
+		googleUser = userService.getCurrentUser();
+		UserDao userDao = new UserDao();
+		user = userDao.findBy("googleUserId", googleUser.getUserId());
+		//logger.info(googleUser.getUserId());
+		if (user == null) {
+			logger.info("creating new user");
+			user =  new User();
+			user.setGoogleUserId(googleUser.getUserId());
+			user.setName(googleUser.getNickname());
+			user.setEmail(googleUser.getEmail());
+			userDao.save(user);
+		}
+		//logger.info("user to session " + user.toString());
+			//context.getRequest().getSession().setAttribute(StickletConstants.SESSION_USER, (User)user);
+		//}
+		//logger.info("final user" + user.toString());
+	}
+	
+	private Resolution logout() {
+		return redirect(userService.createLoginURL("/"));	
 	}
 }

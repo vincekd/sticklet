@@ -8,8 +8,8 @@ import com.sticklet.model.base.BaseModel;
 
 @Entity
 public class User extends BaseModel implements Serializable {
-	
-	//private final static long serialVersionUID = 100L;
+
+	private final static long serialVersionUID = 1L;
 
 	public String email;
 	public void setEmail(String email) {
