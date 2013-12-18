@@ -61,7 +61,7 @@ html,body {
                 #left-bar .notebook .notebook-head .notebook-note-count {
                     position: absolute;
                     right: 0px;
-                    top: 0px;
+                    top: 3px;
                     width: 50px;
                     font-size: .8em;
                     text-align: right;
@@ -128,4 +128,11 @@ html,body {
 .textbox:focus {
     outline: 1px ridge rgb(0,0,0);
     outline: 1px ridge rgba(0,0,0,.4);
+}
+#copyright {
+    opacity:.3;
+    position:fixed;
+    bottom:0px;
+    right:5px;
+    color: #FFF;
 }

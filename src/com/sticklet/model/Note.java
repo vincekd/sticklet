@@ -1,56 +1,69 @@
 package com.sticklet.model;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.sticklet.dao.NotebookDao;
+import java.util.HashMap;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Parent;
 import com.sticklet.model.base.BaseModel;
 
+@Entity
 public class Note extends BaseModel {
-	private static NotebookDao notebookDao = new NotebookDao();
+	
 	public Note() {
-		
+		super();
+	}
+	public Note(User user) {
+		super();
+		setUser(Ref.create(user));
 	}
 	
-	public Note(Entity entity) {
-		super(entity);
+	@Parent
+	@Index
+	public Ref<User> user;
+	public void setUser(Ref<User> user) {
+		this.user = user;
 	}
+	public Ref<User> getUser() {
+		return user;
+	}
+	public HashMap<String, Object> formatUser() {
+		return user.get().toHashMap();
+	}
+
+	Key<Notebook> notebook;
 	
-	//String title;
+	String title;
 	public void setTitle(String title) {
-		entity.setProperty("title", title);
+		this.title = title;
 	}
 	public String getTitle() {
-		return (String)entity.getProperty("title");
+		return title;
 	}
 	
-	//String content;
-	public void setContent(String content) {
-		entity.setProperty("content", content);
+	String content;
+	public void setContent(String desc) {
+		content = desc;
 	}
 	public String getContent() {
-		return (String)entity.getProperty("content");
+		return content;
+	}
+
+	int color;
+	public void setColor(int color) {
+		this.color = color;
+	}
+	public int getColor() {
+		return color;
 	}
 	
-	//Notebook notebook;
-	public void setNotebook(Notebook notebook) {
-		entity.setProperty("notebook", notebook.getKey());
+	int index;
+	public void setIndex(int index) {
+		this.index = index;
 	}
-	public Notebook getNotebook() {
-		Key key = (Key)entity.getProperty("notebook");
-		if (key != null) {
-			return (Notebook)notebookDao.find(key);
-		}
-		return null;
+	public int getIndex() {
+		return index;
 	}
-	
-	//int color;
-	public void setColor(Integer color) {
-		entity.setProperty("color", color);
-	}
-	public Integer getColor() {
-		return (Integer)entity.getProperty("color");
-	}
-	
-//	@ManyToMany(fetch=FetchType.EAGER)
-//	Set<Tag> tags;
 }

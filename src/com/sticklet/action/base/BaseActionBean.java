@@ -1,5 +1,6 @@
 package com.sticklet.action.base;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -13,24 +14,30 @@ import net.sourceforge.stripes.action.RedirectResolution;
 import net.sourceforge.stripes.action.Resolution;
 import net.sourceforge.stripes.action.StreamingResolution;
 
-import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
 import com.google.gson.Gson;
+import com.sticklet.constants.StickletConstants;
+import com.sticklet.model.User;
 
 public abstract class BaseActionBean implements ActionBean {
 	protected Logger logger = Logger.getLogger(this.getClass().getName());
 	protected ActionBeanContext context;
-	protected User user;
+	protected com.google.appengine.api.users.User googleUser;
+	protected User user = null;
+	protected UserService userService = UserServiceFactory.getUserService();
+	
+	public BaseActionBean() {
+		super();
+		googleUser = userService.getCurrentUser();
+	}
 
     @DefaultHandler
     public Resolution directByMethod() {
-    	UserService userService = UserServiceFactory.getUserService();
-    	user = userService.getCurrentUser();
-    	logger.info(context.getRequest().getMethod().toLowerCase());
-    	//logger.info(user != null ? user.toString() : "no user");
-    	//if (user != null) {
+    	Principal userPrincipal = context.getRequest().getUserPrincipal();
+    	if (userPrincipal != null) {
+    		user = (User)context.getRequest().getSession().getAttribute(StickletConstants.SESSION_USER);
         	switch (context.getRequest().getMethod().toLowerCase()) {
         	case "put":
         		return this.doPut();
@@ -42,10 +49,10 @@ public abstract class BaseActionBean implements ActionBean {
         	default:
         		return this.doGet();
         	}
-    //} else {
-        //	redirect(userService.createLoginURL("/"));
-      //  }
-        //return null;
+    	} else {
+        	redirect(userService.createLoginURL("/"));
+    	}
+        return null;
     }
 
     public Resolution doPut() {

@@ -24,9 +24,16 @@
         init: function() {
             var _this = this;
             hash.registerHashChangeCallback(_this.hashChangeCallback, _this);
-            _this.getNotebooks();
-
-            _this.sort();
+            _this.ajax({
+            	url: "/pages",
+            	success: function(r) {
+            		//$("#logout").attr("href", r.logout);
+            		nbElm = elm("notebook", null, $("#notebookTemplate").html(), Object.keys(r.notebook));
+            		nElm = elm("note", null, $("#noteTemplate").html(), Object.keys(r.note));
+            		_this.getNotebooks();
+            		_this.channel.open(r.token);
+            	}
+            });
 
             $("#mainWrapper").on("click touchend", "[data-sort-by][data-type]", function(ev) {
                 var el = $(this),
@@ -53,6 +60,10 @@
             	var el = $(this),
             	$nb = el.closest(".notebook");
             	_this.saveNotebook(nbElm.getId($nb), "color", parseInt(el.attr("data-color-id"), 10));
+            }).on("click touchend", ".deleteNotebook", function(ev) {
+            	_this.deleteNotebook($(this).closest("[data-notebook-id]").attr("data-notebook-id"));
+            }).on("click touchend", ".logout", function(ev) {
+            	window.location = "/pages/logout";
             });
             
             $(window).on("resize", resizeWindow);
@@ -74,8 +85,6 @@
         		nbId = hash.get("nb"),
         		$notebooks = $("#mainWrapper .notebooks").html("");
 
-        		nbElm = elm("notebook", null, $("#notebookTemplate").html(), Object.keys(data[0]));
-
         		_(data).each(function(notebook) {
         			$notebooks.append(nbElm.create(notebook));
         		});
@@ -85,10 +94,11 @@
         		} else if (data.length > 0) {
         			hash.add({
         				nb: data[0].id,
-        				n: data[0].firstNote,
+        				n: "", //data[0].firstNote,
         				a: ""
         			});
         		}
+        		_this.sort();
         	}
         },
         getNotebook: function(nbId) {
@@ -108,8 +118,6 @@
         		nid = hash.get("n"),
         		$notes = $("#mainWrapper .notes").html("");
 
-        		nElm = elm("note", null, $("#noteTemplate").html(), Object.keys(notebook));
-
         		nbElm.elements.removeClass("current");
         		nbElm.getById(nbId).addClass("current");
         		scrollTo(nbElm.getById(nbId), $("#mainWrapper .notebooks"));
@@ -127,6 +135,7 @@
         				a: ""
         			});
         		}
+        		_this.sort();
         	}
         },
         saveNotebook: function(nbId, prop, value) {
@@ -136,11 +145,14 @@
         		data: {
         			prop: prop,
         			value: value
-        		},
-        		success: function(r) {
-        			console.log(r);
         		}
-        	})
+        	});
+        },
+        deleteNotebook: function(nbId) {
+        	sticklet.ajax({
+        		url: "/notebook/" + nbId,
+        		type: "delete"
+        	});
         },
         loadNote: function() {
             var nId = hash.get("nid");
@@ -182,7 +194,7 @@
             if ((changes.indexOf("fn") + changes.indexOf("fnb")) !== -2) {
                 _this.filter();
             }
-            if ((changes.indexOf("sn") + changes.indexOf("snb")) !== -2) {
+            if ((changes.indexOf("sn") + changes.indexOf("snb") + changes.indexOf("snbd") + changes.indexOf("snd")) !== -4) {
                 _this.sort();
             }
         },
@@ -197,11 +209,68 @@
         getColorPicker: function() {
         	return colorTemplate({colors: colors});
         },
-        updateNote: function(note) {
-
+        note: {
+        	updated: function(note) {
+        		
+        	},
+        	deleted: function(note) {
+        		
+        	}
         },
-        updateNotebook: function(notebook) {
-
+        notebook: {
+        	created: function(notebook) {
+        		$("#mainWrapper .notebooks").append(nbElm.create(notebook));
+        	},
+        	updated: function(notebook) {
+        		var el = nbElm.getById(notebook.id);
+        		if (el.length === 0) {
+        			$("#mainWrapper .notebooks").append(nbElm.create(notebook));
+        		} else {
+        			//TODO: do this better
+        			el.replaceWith(nbElm.create(notebook));
+        		}
+        	},
+        	deleted: function(notebook) {
+        		nbElm.getById(notebook.id).remove();
+        	},
+        },
+        channel: {
+        	connected: false,
+        	channel: null,
+        	socket: null,
+        	open: function(token) {
+        		var _this = this;
+        		_this.channel = new goog.appengine.Channel(token);
+        		_this.socket = _this.channel.open();
+        		$.extend(_this.socket, _this.socketEvents);
+        	},
+        	sendMessage: function(message) {
+        		
+        	},
+        	socketEvents: {
+        		onopen: function() {
+        			var _this = this;
+        			_this.connected = true;
+        		},
+        		onmessage: function(m) {
+        			var data = JSON.parse(m.data),
+        			fn = getValue(data.callback, sticklet);
+        			if (typeof fn === "function") {
+        				fn.call(sticklet, data.data);
+        			}
+        		},
+        		onclose: (function() {
+        			var retry = 10,
+        			retries = 0;
+        			return function() {
+        				console.log("bye");
+        				if (retries < retry) {
+        					sticklet.channel.open();
+        					retries++;
+        				}
+        			};
+        		}())
+        	}
         }
     };
     
@@ -210,7 +279,7 @@
     		url: "/notebook",
     		type: "post",
     		success: function(r) {
-    			$("#mainWrapper .notebooks").append(nbElm.create(r.notebook));
+    			//$("#mainWrapper .notebooks").append(nbElm.create(r.notebook));
     		}
     	});
     }
@@ -230,6 +299,7 @@
         var arr = _(elm.elements).sortBy(function($el) {
             return parseInt(elm.getId($el), 10)||0;
         });
+
         arr = _(arr).sortBy(function($el) {
             return elm.getAttr($el, attr);
         });

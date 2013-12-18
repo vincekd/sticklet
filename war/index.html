@@ -23,7 +23,7 @@
               <a href="javascript:void(0);">Settings</a>
             </li>
             <li>
-              <a href="javascript:void(0);">Logout</a>
+              <a href="javascript:void(0);" id="logout" class="logout">Logout</a>
             </li>
           </ul>
         </div>
@@ -114,7 +114,6 @@
            data-notebook-updated="<%= updated %>"
            data-notebook-noteCount="<%= noteCount %>"
            data-notebook-color="<%= color %>"
-           data-notebook-firstnote="<%= firstNote %>"
            data-notebook-title="<%= escape(title) %>">
         <div class="notebook-context-menu">
           <div class="dropdown pull-right">
@@ -125,13 +124,16 @@
               <li>
 				<%= sticklet.getColorPicker() %>
               </li>
+				<li>
+					<a href="javascript:void(0);" class="deleteNotebook">Delete</a>
+				</li>
             </ul>
           </div>
         </div>
         <div class="notebook-head">
           <div class="notebook-title">
             <span class="medium-text">Title: </span>
-            <a href="#nb=<%= id %>&n=<%= firstNote %>&a="><%= title %></a>
+            <a href="#nb=<%= id %>&n=&a="><%= title %></a>
           </div>
           <div class="notebook-note-count"><%= noteCount %> notes</div>
         </div>
@@ -147,7 +149,7 @@
           <div class="notebook-tags">
             <span class="medium-text">Tags: </span>
             <span>
-              <% _(tags).each(function(tag) { %>
+              <% typeof tags !== "undefined" && _(tags).each(function(tag) { %>
               <a href="javascript:void(0);"
                  class="notebook-tag stag"
                  data-tag-id="<%= tag.id %>"
@@ -192,11 +194,15 @@
         </div>
       </div>
     </script>
+    <div id="copyright">
+    	&copy; sticklet.com (<script type="text/javascript">document.write(new Date());</script>)
+   	</div>
   </body>
   <script type="text/javascript" src="js/lib/hash.js"></script>
   <script type="text/javascript" src="js/lib/jquery-2.0.0.min.js"></script>
   <script type="text/javascript" src="js/lib/underscore.js"></script>
   <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/lib/dom.js"></script>
+  <script type="text/javascript" src="/_ah/channel/jsapi"></script>
   <script type="text/javascript" src="js/notes.js"></script>
 </html>

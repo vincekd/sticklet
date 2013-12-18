@@ -1,96 +1,106 @@
 package com.sticklet.model;
 
+
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Parent;
 import com.sticklet.dao.NoteDao;
+import com.sticklet.dao.NotebookDao;
 import com.sticklet.model.base.BaseModel;
-import com.sticklet.util.DateFormatUtil;
 
+@Entity
+@Cache
 public class Notebook extends BaseModel {
+	@Ignore
+	private static NotebookDao notebookDao = new NotebookDao();
+	@Ignore
 	private static NoteDao noteDao = new NoteDao();
+	
 	public Notebook() {
 		super();
 	}
-	
-	public Notebook(Entity entity) {
-		super(entity);
+	public Notebook(User user) {
+		super();
+		setUser(Ref.create(user));
 	}
-	
-	//private String title;
+
+	@Parent
+	@Index
+	public Ref<User> user;
+	public void setUser(Ref<User> user) {
+		this.user = user;
+	}
+	public Ref<User> getUser() {
+		return user;
+	}
+	public HashMap<String, Object> formatUser() {
+		if (user != null) {
+			return user.get().toHashMap();
+		}
+		return null;
+	}
+
+	String title = "New Notebook";
 	public void setTitle(String title) {
-		entity.setProperty("title", title);
+		this.title = title;
 	}
 	public String getTitle() {
-		return (String)entity.getProperty("title");
+		return title;
 	}
-
-	//private String description;
+	
+	String description = "What kind of notes do I save?";
 	public void setDescription(String desc) {
-		entity.setProperty("description", desc);
+		description = desc;
 	}
 	public String getDescription() {
-		return (String)entity.getProperty("description");
+		return description;
 	}
 
-	//private int color;
-	public void setColor(Integer color) {
-		entity.setProperty("color", color);
+	int color = 1;
+	public void setColor(int color) {
+		this.color = color;
 	}
-	public Integer getColor() {
-		Long l = (Long)entity.getProperty("color");
-		if (l != null) {
-			return (int)((long)l);
-		}
-		return null;
+	public int getColor() {
+		return color;
 	}
 	
-	public Integer getNoteCount() {
-		return null;
+	@Index
+	int index;
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	public int getIndex() {
+		return index;
 	}
 	
-	public void setIndex(Integer index) {
-		entity.setProperty("index", index);
+	@Ignore
+	long noteCount;
+	public long formatNoteCount() {
+		return 0;
 	}
-	public Integer getIndex() {
-		return (Integer)entity.getProperty("index");
-	}
-
+	
 	public List<HashMap<String, Object>> getNotes() {
-		List<Note> notes = noteDao.findAllBy("notebook", this.getKey());
-		List<HashMap<String, Object>> noteMaps = new ArrayList<HashMap<String, Object>>();
-		for (int i = 0; i < notes.size(); i++) {
-			noteMaps.add(notes.get(i).toHashMap());
+		List<Note> notes = noteDao.findAllBy("notebook", notebookDao.getKey(this));
+		ArrayList<HashMap<String, Object>> out = new ArrayList<HashMap<String, Object>>();
+		if (notes != null) {
+			for (Note note : notes) {
+				out.add(note.toHashMap());
+			}
 		}
-		return noteMaps;
+		return out;
 	}
 
-	public HashMap<String, Object> toHashMap() {
-		HashMap<String, Object> map = new HashMap<String, Object>();
-		map.put("id", getKeyStr());
-		Date created = getCreated();
-		if (created != null) {
-			map.put("created", created.getTime());
-		} else {
-			map.put("created", "");
-		}
-		Date updated = getCreated();
-		if (updated != null) {
-			map.put("updated", getUpdated().getTime());
-		} else {
-			map.put("updated", "");
-		}
-		map.put("displayDate", DateFormatUtil.formatDate(updated != null ? updated : created));
-		map.put("title", getTitle());
-		map.put("description", getDescription());
-		map.put("color", getColor());
-		map.put("index", getIndex());
-		map.put("noteCount", "");
-		map.put("firstNote", "");
-		map.put("tags", "");
-		return map;
-	}
+//	@Ignore
+//	Key firstNote;
+//	public Key formatFirstNote() {
+//		return 0;
+//	}
 }

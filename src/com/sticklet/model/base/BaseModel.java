@@ -1,57 +1,127 @@
 package com.sticklet.model.base;
 
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.OnSave;
+import com.sticklet.util.DateFormatUtil;
 import com.sticklet.util.StringUtil;
 
-public abstract class BaseModel {
+public abstract class BaseModel implements Model {
+	@Ignore
 	protected Logger logger = Logger.getLogger(this.getClass().getName());
-	protected DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	protected Entity entity;
+	@Ignore
 	protected String modelName = this.getClass().getSimpleName();
 
-	public BaseModel() {
-		entity = new Entity(modelName);
-		setCreated(new Date());
+	@Id
+	public Long id;
+	public void setId(long id) {
+		this.id = id;
+	}
+	public Long getId() {
+		return id;
 	}
 
-	public BaseModel(Entity entity) {
-		if (entity == null) {
-			throw new NullPointerException();
+	public Date created;
+	public void setCreated(Date date) {
+		created = date;
+	}
+	public Date getCreated() {
+		return created;
+	}
+	public Long formatCreated() {
+		return created.getTime();
+	}
+
+	@OnSave
+	public void onSave() {
+		if (created == null) {
+			setCreated(new Date());
 		}
-		this.entity = entity;
+		setUpdated(new Date());
+	}
+	
+	//@OnDelete
+
+	public Date updated;
+	public void setUpdated(Date date) {
+		updated = date;
+	}
+	public Date getUpdated() {
+		return updated;
+	}
+	public Long formatUpdated() {
+		return updated.getTime();
 	}
 
+	@Ignore
+	public String displayDate;
+	public String formatDisplayDate() {
+		return DateFormatUtil.formatDate(created);
+	}
+
+	public HashMap<String, Object> toHashMap() {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		Class<?>[] clazzes = {};
+		ArrayList<Field> fields = new ArrayList<Field>();
+		fields.addAll(Arrays.asList(this.getClass().getFields()));
+		fields.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
+		for (Field field : fields) {
+			Method method = null;
+			try {
+				method = this.getClass().getMethod("format" + StringUtil.capitalize(field.getName()), clazzes);
+			} catch (NoSuchMethodException e) {}
+			if (!field.isAnnotationPresent(Ignore.class) || method != null) {
+				field.setAccessible(true);
+				try {
+					Object value = method != null ? method.invoke(this) : field.get(this);
+					map.put(field.getName(), value);
+				} catch (IllegalAccessException e) {
+					//e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					//e.printStackTrace();
+				}
+			}
+		}
+		return map;
+	}
+	
 	public boolean setProp(String prop, Object value) {
 		try {
 			Class<?>[] clazzes = {};//new Class<?>[1];
-			
+
 			Method method = this.getClass().getMethod("get" + StringUtil.capitalize(prop), clazzes);
 			Class<?> returnType = method.getReturnType();
-			
+
 			Object curValue = method.invoke(this);
 
 			clazzes = new Class<?>[1];
 			clazzes[0] = returnType;
 
 			method = this.getClass().getMethod("set" + StringUtil.capitalize(prop), clazzes);
-			if (returnType.equals(Integer.class) && value instanceof Double) {
-				value = ((Double)value).intValue();
+			if ((returnType.equals(int.class) || returnType.equals(Integer.class))) {
+				if (value instanceof Double) {
+					value = ((Double)value).intValue();
+				} else if (value instanceof Integer) {
+					value = ((Integer)value).intValue();
+				}
 			}
 
 			if (curValue != null && value == null || value != null && curValue == null || !curValue.equals(value)) {
-				method.invoke(this, returnType.cast(value));
+				try {
+					method.invoke(this, returnType.cast(value));
+				} catch (ClassCastException e) {
+					method.invoke(this, value);
+				}
 				return true;
 			}
 		} catch (Exception e) {
@@ -60,56 +130,8 @@ public abstract class BaseModel {
 		return false;
 	}
 	
-	public Entity getEntity() {
-		return entity;
+	@Override
+	public String toString() {
+		return modelName + ": " + id;
 	}
-	public void setEntity(Entity entity) {
-		this.entity = entity;
-	}
-	
-	public Key getKey() {
-		return entity.getKey();
-	}
-
-	public String getKeyStr() {
-		return KeyFactory.keyToString(entity.getKey());
-	}
-
-	private void setCreated(Date date) {
-		entity.setProperty("created", date);
-	}
-
-	public Date getCreated() {
-		return (Date)entity.getProperty("created");
-	}
-
-	public void setUpdated(Date date) {
-		entity.setProperty("updated", date);
-	}
-	public Date getUpdated() {
-		return (Date)entity.getProperty("updated");
-	}
-
-	@PrePersist
-	protected void onCreate() {
-		setCreated(new Date());
-	}
-
-    @PreUpdate
-    protected void onUpdate() {
-        setUpdated(new Date());
-    }
-
-    @Override
-    public String toString() {
-    	//return modelName + ": " + entity.getKey();
-    	return modelName + ": " + getKey();
-    }
-    
-    public HashMap<String, Object> toHashMap() {
-    	HashMap<String, Object> map = new HashMap<String, Object>();
-    	map.put("type", entity.getKind());
-    	map.put("key", KeyFactory.keyToString(getKey()));
-    	return map;
-    }
 }

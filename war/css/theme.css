@@ -8,6 +8,7 @@ html,body {
     padding: 10px;
     margin: 10px 0 0 0;
     border-radius: 10px;
+    background-color: #DDD;
 }
 .stag {
     padding: 2px;
@@ -35,4 +36,41 @@ html,body {
 }
 .scolor6 {
     background-color: #D8BFD8;
+}
+.btn {
+    color: #6e6e6e;
+    font: bold 12px Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    padding: 7px 12px;
+    position: relative;
+    display: inline-block;
+    text-shadow: 0 1px 0 #ffffff;
+    background: #f3f3f3;
+    background: -webkit-gradient(linear,0% 40%,0% 70%,from(#F5F5F5),to(#F1F1F1));
+    background: -o-gradient(linear,0% 40%,0% 70%,from(#F5F5F5),to(#F1F1F1));
+    background: -moz-linear-gradient(linear,0% 40%,0% 70%,from(#F5F5F5),to(#F1F1F1));
+    border: solid 1px #dcdcdc;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2p;
+    -webkit-transition: border-color .218s;
+    -moz-transition: border .218s;
+    -o-transition: border-color .218s;
+    transition: border-color .218s;
+    cursor:pointer;
+}
+.btn:hover {
+    color: #333333;
+    border-color: #888888;
+    -webkit-box-shadow:0 2px 5px rgba(0, 0, 0, 0.2);
+    -o-box-shadow:0 2px 5px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.btn:active {
+    color: #000000;
+    border-color: #444444;
+}
+#mainWrapper .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
+	background: #F00;
 }

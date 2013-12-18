@@ -1,102 +1,86 @@
 package com.sticklet.dao.base;
 
-import java.util.ArrayList;
-import java.util.Date;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
 import java.util.List;
+import java.util.logging.Logger;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
-import com.sticklet.model.base.BaseModel;
-
+import com.googlecode.objectify.Key;
+import com.sticklet.model.User;
 
 public abstract class BaseDao<T> {
-	protected DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+	protected Logger logger = Logger.getLogger(this.getClass().getName());
 	protected Class entityClass;
+	protected User user;
+	protected Key userKey;
+
+	public void setUser(User user) {
+		this.user = user;
+		userKey = Key.create(user);
+	}
+
 	public BaseDao() {
+		getEntityClass();
+	}
+
+	private void getEntityClass() {
 		try {
 			entityClass = Class.forName(this.getClass().getName().replace("dao", "model").replace("Dao", ""));
 		} catch (ClassNotFoundException e) {
-
+			e.printStackTrace();
 		}
 	}
 	
-	public void save(BaseModel model) {
-		model.setUpdated(new Date());
-		datastore.put(model.getEntity());
-	}
-	
-	public void delete(BaseModel model) {
-		datastore.delete(model.getKey());
-	}
-	
-	public T find(String key) {
-		return find(KeyFactory.stringToKey(key));
+	public Key<T> getKey(T model) {
+		return Key.create(model);
 	}
 
-	public T find(Key key) {
-		Entity entity;
-		try {
-			entity = datastore.get(key);
-		} catch (EntityNotFoundException e) {
-			return null;
-		}
-		return getInstanceFromEntity(entity);
+	public void save(T model) {
+		ofy().save().entity(model).now();
 	}
 	
-	public List<T> findAllBy(String name, Object obj) {
-		List<T> models = new ArrayList<T>();
-		try {
-			//Query query = new Query(entityClass.getSimpleName()).addFilter(name, FilterOperator.EQUAL, obj);
-			Query query = new Query(entityClass.getSimpleName()).setFilter(
-					new FilterPredicate(name, FilterOperator.EQUAL, obj));
-			PreparedQuery pq = datastore.prepare(query);
-			for (Entity entity : pq.asIterable()) {
-				models.add(getInstanceFromEntity(entity));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+	public T find(Long id) {
+		Key key = Key.create(userKey, entityClass, id);
+		return getFirstResult(ofy().load().type(entityClass).ancestor(user).filterKey(key).list());
+	}
+
+	public T find(Key<T> key) {
+		return ofy().load().key(key).now();
+	}
+
+	public List<T> findAll() {
+		if (user != null) {
+			return ofy().load().type(entityClass).ancestor(user).list();
 		}
-		return models;
+		return ofy().load().type(entityClass).list();
+	}
+
+	public List<T> findAllBy(String name, Object val) {
+		if (user != null) {
+			return ofy().load().type(entityClass).ancestor(user).filter(name, val).list();
+		}
+		return ofy().load().type(entityClass).filter(name, val).list();
 	}
 	
-	public List<T> fetch() {
-		List<T> models = new ArrayList<T>();
-		try {
-			Query query = new Query(entityClass.getSimpleName());
-			PreparedQuery pq = datastore.prepare(query);
-			for (Entity entity : pq.asIterable()) {
-				models.add(getInstanceFromEntity(entity));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+	public T findBy(String name, Object val) {
+		if (user != null) {
+			return getFirstResult(ofy().load().type(entityClass).ancestor(user).filter(name, val).list());
 		}
-		return models;
+		return getFirstResult(ofy().load().type(entityClass).filter(name, val).list());
+	}
+
+	public void delete(T model) {
+		ofy().delete().entity(model).now();
+	}
+
+	public void delete(Key<T> key) {
+		ofy().delete().key(key).now();
 	}
 	
-	protected List<T> getInstanceFromEntities(List<Entity> entities) {
-		List<T> list = new ArrayList<T>();
-		if (entities != null) {
-			for (int i = 0; i < entities.size(); i++) {
-				list.add(getInstanceFromEntity(entities.get(i)));
-			}
+	private T getFirstResult(List<T> results) {
+		if (results != null && results.size() > 0) {
+			return results.get(0);
 		}
-		return list;
-	}
-	
-	protected T getInstanceFromEntity(Entity entity) {
-		try {
-			return (T)entityClass.getConstructor(Entity.class).newInstance(entity);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		return null;
 	}
 }
