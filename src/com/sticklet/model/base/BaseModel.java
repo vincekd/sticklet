@@ -1,6 +1,5 @@
 package com.sticklet.model.base;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.OnSave;

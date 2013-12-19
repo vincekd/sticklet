@@ -7,7 +7,9 @@ import java.util.List;
 import net.sourceforge.stripes.action.Resolution;
 import net.sourceforge.stripes.action.UrlBinding;
 
+import com.googlecode.objectify.Ref;
 import com.sticklet.action.base.BaseActionBean;
+import com.sticklet.dao.NoteDao;
 import com.sticklet.dao.NotebookDao;
 import com.sticklet.model.Notebook;
 import com.sticklet.util.ChannelUtil;
@@ -69,21 +71,29 @@ public class NotebookActionBean extends BaseActionBean {
 		Notebook notebook = getNotebook();
 		if (notebook != null) {
 			notebookDao.delete(notebook);
+			
+			NoteDao noteDao = new NoteDao();
+			noteDao.setUser(user);
+			noteDao.deleteAllBy("notebook", Ref.create(notebook));
+			
 			ChannelUtil.pushToUser(user, "notebook.deleted", notebook.toHashMap());
 		}
 		return null;
 	}
 
 	private Notebook getNotebook() {
-		notebookDao.setUser(user);
-		Notebook notebook = notebookDao.find(notebookKey);
-		return notebook;
+		if (notebookKey != null) {
+			notebookDao.setUser(user);
+			Notebook notebook = notebookDao.find(notebookKey);
+			return notebook;
+		}
+		return null;
 	}
 	
 	private Resolution sendNotebook(Notebook notebook) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		if (notebook != null) {
-			HashMap<String, Object> nbMap = (notebook != null ? notebook.toHashMap() : null);
+			HashMap<String, Object> nbMap = notebook.toHashMap();
 			nbMap.put("notes", notebook.getNotes());
 			map.put("notebook", nbMap);
 		}

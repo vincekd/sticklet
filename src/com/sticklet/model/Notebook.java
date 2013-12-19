@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
@@ -56,13 +55,13 @@ public class Notebook extends BaseModel {
 		return title;
 	}
 	
-	String description = "What kind of notes do I save?";
-	public void setDescription(String desc) {
-		description = desc;
-	}
-	public String getDescription() {
-		return description;
-	}
+//	String description = "What kind of notes do I save?";
+//	public void setDescription(String desc) {
+//		description = desc;
+//	}
+//	public String getDescription() {
+//		return description;
+//	}
 
 	int color = 1;
 	public void setColor(int color) {
@@ -80,15 +79,10 @@ public class Notebook extends BaseModel {
 	public int getIndex() {
 		return index;
 	}
-	
-	@Ignore
-	long noteCount;
-	public long formatNoteCount() {
-		return 0;
-	}
-	
+
 	public List<HashMap<String, Object>> getNotes() {
-		List<Note> notes = noteDao.findAllBy("notebook", notebookDao.getKey(this));
+		noteDao.setUser(user.get());
+		List<Note> notes = noteDao.findAllBy("notebook", Ref.create(this));
 		ArrayList<HashMap<String, Object>> out = new ArrayList<HashMap<String, Object>>();
 		if (notes != null) {
 			for (Note note : notes) {
@@ -98,9 +92,12 @@ public class Notebook extends BaseModel {
 		return out;
 	}
 
-//	@Ignore
-//	Key firstNote;
-//	public Key formatFirstNote() {
-//		return 0;
-//	}
+	public HashMap<String, Object> toHashMap() {
+		HashMap<String, Object> map = super.toHashMap();
+		Ref<Notebook> notebookRef = Ref.create(this);
+		map.put("noteCount", this.id != null ? noteDao.findCountBy("notebook", notebookRef) : 0);
+		//Note note = noteDao.findBy("notebook", notebookRef);
+		//map.put("firstNote", note != null ? note.getId() : null);
+		return map;
+	}
 }

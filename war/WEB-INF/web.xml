@@ -37,6 +37,11 @@
 	    <url-pattern>/*</url-pattern>
 	</servlet-mapping>
 
+<!-- 	<servlet-mapping> -->
+<!-- 	    <servlet-name></servlet-name> -->
+<!-- 	    <url-pattern>*.ico</url-pattern> -->
+<!-- 	</servlet-mapping> -->
+
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>index.html</web-resource-name>
@@ -59,6 +64,10 @@
 	<listener>
 	 	<listener-class>com.sticklet.listener.StickletContextListener</listener-class>
   	</listener>
+  	
+<!-- 	<static-files> -->
+<!--   		<include path="/favicon.ico"></include> -->
+<!-- 	</static-files> -->
 <!--   	<listener> -->
 <!--         <listener-class>com.sticklet.listener.StickletSessionListener</listener-class> -->
 <!--     </listener> -->

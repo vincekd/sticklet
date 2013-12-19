@@ -30,10 +30,26 @@ public class Note extends BaseModel {
 		return user;
 	}
 	public HashMap<String, Object> formatUser() {
-		return user.get().toHashMap();
+		if (user != null) {
+			return user.get().toHashMap();
+		}
+		return null;
 	}
 
-	Key<Notebook> notebook;
+	@Index
+	Ref<Notebook> notebook;
+	public void setNotebook(Ref<Notebook> ref) {
+		notebook = ref;
+	}
+	public Ref<Notebook> getNotebook() {
+		return notebook;
+	}
+	public Long formatNotebook() {
+		if (notebook != null) {
+			return notebook.get().getId();
+		}
+		return null;
+	}
 	
 	String title;
 	public void setTitle(String title) {

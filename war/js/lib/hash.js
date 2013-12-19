@@ -14,9 +14,7 @@
 
         for(var i = 0; i < params.length; i++) {
             var a = params[i].split("=");
-            if (typeof a[1] !== "undefined" && a[1] !== null && a[1] !== "") {
-                paramsObject[a[0]] =  decodeURIComponent(a[1]);
-            }
+            paramsObject[a[0]] =  decodeURIComponent(a[1])||"";
         }
         return paramsObject;
     },
@@ -27,21 +25,24 @@
         str = [];
 
         for (var h in hashes) {
-            if (!params[h] || params[h] !== hashes[h]) {
-                same = false
-                break
+            if (""+params[h] !== ""+hashes[h]) {
+                same = false;
+                break;
             }
         }
 
         for(var p in params) {
-            if (same && (!hashes[p] || hashes[p] !== params[p])) 
+            if (same && (""+hashes[p] !== ""+params[p])) {
                 same = false;
-            if (p !== "")
+            }
+            if (p !== "") {
                 str.push(p + "=" + encodeURIComponent(params[p]));
+            }
         }
         if (!same) {
             window.location.hash = str.join("&");
         }
+        return !same;
     },
     hashChange = function(ev) {
         var oldURL = ev.oldURL,
@@ -87,7 +88,7 @@
         addOne: function(str, val) {
             var obj = {};
             obj[str] = val;
-            hash.add(obj);
+            return hash.add(obj);
         },
         add: function(newParams) {
             if (Object.keys(newParams).length <= 0) return;
@@ -95,7 +96,7 @@
             for (var p in newParams) {
                 params[p] = newParams[p];
             }
-            toHash(params);
+            return toHash(params);
         },
         addRemove: function(toAdd, toRemove) {
             var params = fromHash();
@@ -114,7 +115,7 @@
             } else if (!!toRemove) {
                 delete params[toRemove];
             }
-            toHash(params);
+            return toHash(params);
         },
         remove: function(removeParams) {
             removeParams = (typeof removeParams === "string") ? [removeParams] : removeParams;
@@ -122,7 +123,7 @@
             for (var i = 0; i < removeParams.length; i++) {
                 delete params[removeParams[i]];
             }
-            toHash(params);
+            return toHash(params);
         },
         clear: function() {
             toHash({});

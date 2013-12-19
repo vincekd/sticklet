@@ -17,7 +17,6 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.labs.repackaged.org.json.JSONObject;
 import com.google.gson.Gson;
-import com.sticklet.constants.StickletConstants;
 import com.sticklet.dao.UserDao;
 import com.sticklet.model.User;
 

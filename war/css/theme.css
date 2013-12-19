@@ -2,7 +2,7 @@ html,body {
     background-color: #333;
 }
 #mainWrapper .well {
-    background-color: #FFF;
+    background-color: #F5F2F8;
 }
 .scard {
     padding: 10px;
@@ -41,7 +41,6 @@ html,body {
     color: #6e6e6e;
     font: bold 12px Helvetica, Arial, sans-serif;
     text-decoration: none;
-    padding: 7px 12px;
     position: relative;
     display: inline-block;
     text-shadow: 0 1px 0 #ffffff;
@@ -58,6 +57,13 @@ html,body {
     -o-transition: border-color .218s;
     transition: border-color .218s;
     cursor:pointer;
+    outline: none !important;
+}
+#mainWrapper input {
+	outline: none;
+}
+.btn:not(.btn-small) {
+	padding: 7px 12px;
 }
 .btn:hover {
     color: #333333;
@@ -71,6 +77,22 @@ html,body {
     color: #000000;
     border-color: #444444;
 }
+.btn .caret {
+	margin-top: 6px;
+}
 #mainWrapper .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
 	background: #F00;
+}
+.current-sort-area  {
+	padding: 7px 12px;
+} 
+.sort-abutted-dropdown {
+	border-bottom-right-radius: none !important;
+	border-top-right-radius: none !important;
+}
+.current-sort-area.sort-abutt-dropdown {
+	border: 1px solid #dcdcdc;
+	border-left: none;
+/* 	padding: 5px 12px !important; */
+	font: bold 12px Helvetica, Arial, sans-serif
 }

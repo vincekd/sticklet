@@ -4,20 +4,31 @@ html,body {
 }
 #mainWrapper {
     padding-top: 10px;
+    overflow: hidden;
 }
     #top-bar {
         padding: 5px;
         text-align: center;
     }
+    	#settings-menu {
+    		margin-top: -2px;
+    	}
     #content-area {
 
     }
         #content-area > * {
 			height: 100%;
+			position: relative;
+			overflow-y: auto;
+            overflow-x: hidden;
         }
         #left-bar {
-            overflow-y: auto;
+            
         }
+        	#left-bar .notebooks {
+/*         		overflow-y: auto; */
+/*         		overyflow-x: hidden; */
+        	}
             #left-bar .notebooks-controls {
                 margin-bottom: 10px;
             }
@@ -31,13 +42,13 @@ html,body {
                     /* background-color: #FFFFE0; */
                 }
                 #left-bar .notebook .notebook-body {
-                    display: none;
+					/* display: none; */
                 }
                 #left-bar .notebook.current {
                     /* background-color: #FFFFE0; */
                     /* filter: alpha(opactity=20); */
                     /* opacity: 1; */
-                    /* border: 2px solid #333; */
+                    border: 2px solid #333;
                 }
                     /* #left-bar .notebook:hover .notebook-body, */
                     #left-bar .notebook.current .notebook-body {
@@ -47,17 +58,6 @@ html,body {
                     position: relative;
                     padding-right: 50px;
                 }
-                #left-bar .notebook .notebook-context-menu {
-                    position:absolute;
-                    right: 5px;
-                    top: 0px;
-                }
-                    #left-bar .notebook .notebook-context-menu .notebook-context-icon {
-                        opacity: .4;
-                    }
-                    #left-bar .notebook .notebook-context-menu .notebook-context-icon:hover {
-                        opacity: 1;
-                    }
                 #left-bar .notebook .notebook-head .notebook-note-count {
                     position: absolute;
                     right: 0px;
@@ -67,11 +67,25 @@ html,body {
                     text-align: right;
                 }
         #right-bar {
-            overflow-y: auto;
+
         }
+        	#right-bar .note-search {
+        		padding-bottom: 5px;
+        	}
+        	#right-bar .notes {
+/*         		overflow-y: auto; */
+/*         		overflow-x: hidden; */
+        	}
             #right-bar .note {
                 position: relative;
             }
+            	#right-bar .note.current {
+            		border: 1px solid #000;
+            	}
+            	#right-bar .note .note-content-inner {
+            		padding: 20px;
+            	}
+            	
                 #right-bar .note .note-title-input,
                 #right-bar .note .note-content-textarea {
                     display: none;
@@ -84,6 +98,23 @@ html,body {
                 #right-bar .note.editing .note-content-inline {
                     display: none;
                 }
+                #right-bar .note .note-content-inline {
+                	white-space: pre;
+                }
+        .notebook .notebook-context-menu,
+        .note .note-context-menu  {
+			position:absolute;
+			right: 5px;
+			top: 0px;
+        }
+        	.notebook .notebook-context-menu .notebook-context-icon,
+            .note .note-context-menu .note-context-icon  {
+				opacity: .4;
+            }
+            .notebook .notebook-context-menu .notebook-context-icon:hover,
+            .note .note-context-menu .note-context-icon:hover {
+            	opacity: 1;
+            }
 .color-picker {
     margin: auto;
     width: 125px;
@@ -125,9 +156,16 @@ html,body {
     width:250px;
     margin-right:1px;
 }
+.textbox {
+	resize: none;
+}
 .textbox:focus {
     outline: 1px ridge rgb(0,0,0);
     outline: 1px ridge rgba(0,0,0,.4);
+}
+
+.editable {
+	cursor: pointer;
 }
 #copyright {
     opacity:.3;

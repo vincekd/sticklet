@@ -62,6 +62,13 @@ public abstract class BaseDao<T> {
 		return ofy().load().type(entityClass).filter(name, val).list();
 	}
 	
+	public Integer findCountBy(String name, Object val) {
+		if (user != null) {
+			return ofy().load().type(entityClass).ancestor(user).filter(name, val).count();
+		}
+		return ofy().load().type(entityClass).filter(name, val).count();
+	}
+	
 	public T findBy(String name, Object val) {
 		if (user != null) {
 			return getFirstResult(ofy().load().type(entityClass).ancestor(user).filter(name, val).list());
@@ -71,6 +78,15 @@ public abstract class BaseDao<T> {
 
 	public void delete(T model) {
 		ofy().delete().entity(model).now();
+	}
+	
+	public void deleteAllBy(String name, Object value) {
+		//TODO: fix this to be better if possible
+		List<T> list = findAllBy(name, value);
+		for (T t : list) {
+			ofy().delete().entity(t);
+		}
+		//ofy().delete().type(entityClass);
 	}
 
 	public void delete(Key<T> key) {
