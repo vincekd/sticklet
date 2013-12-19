@@ -37,8 +37,8 @@ public class NoteActionBean extends BaseActionBean {
 
 				Note note = new Note(user);
 				note.setNotebook(Ref.create(notebook));
-				note.setTitle("New Note");
-				note.setContent("Some content");
+				//note.setTitle("New Note");
+				//note.setContent("Some content");
 				noteDao.save(note);
 
 				ChannelUtil.pushToUser(user, "note.created", note.toHashMap());
@@ -51,17 +51,20 @@ public class NoteActionBean extends BaseActionBean {
 		Note note = getNote();
 		if (note != null) {
 			HashMap<String, Object> json = getRequestData();
+			String prop = ((String)json.get("prop")).trim();
 
-			if (json.get("prop") == "notebook") {
+			if (prop.equals("notebook")) {
 				Notebook notebook = getNotebook(Long.parseLong((String)json.get("value")));
 				json.put("value", Ref.create(notebook));
 			} 
 
-			boolean success = note.setProp((String)json.get("prop"), json.get("value"));
+			boolean success = note.setProp(prop, json.get("value"));
 
 			if (success) {
 				noteDao.save(note);
 				ChannelUtil.pushToUser(user, "note.updated", note.toHashMap());
+			} else {
+				setResponseBad();
 			}
 		}
 		return null;
@@ -77,7 +80,6 @@ public class NoteActionBean extends BaseActionBean {
 	}
 
 	private Note getNote() {
-		logger.info("" + noteId);
 		if (noteId != null) {
 			noteDao.setUser(user);
 			return noteDao.find(noteId);

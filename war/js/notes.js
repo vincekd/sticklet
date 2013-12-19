@@ -1,6 +1,11 @@
 (function($, _, hash, undefined) {
     "use strict";
-    var colors = [
+    var debug = true,
+    log = function() {
+    	if (debug)
+    		console.log.apply(console, (Array.prototype.slice.apply(arguments)));
+    },
+    colors = [
         "scolor1",
         "scolor2",
         "scolor3",
@@ -11,9 +16,22 @@
     colorTemplate = _.template($("#colorPickerTemplate").html()),
     textareaTemplate = _.template($("#textareaTemplate").html()),
     textTemplate = _.template($("#textTemplate").html()),
+    contentTemplate = _.template($("#noteContentTemplate").html()),
+    titleTemplate = _.template($("#noteTitleTemplate").html()),
+    notebookTitleTemplate = _.template($("#notebookTitleTemplate").html()),
+    noteNotebookTemp = _.template($("#noteNotebookTemplate").html()),
     nbElm,
     nElm,
     sticklet = {
+    	get notebookTitleTemp () {
+    		return notebookTitleTemplate;
+    	},
+    	get noteContentTemplate () {
+    		return contentTemplate;
+    	},
+    	get noteTitleTemplate () {
+    		return titleTemplate;
+    	},
         get nbElm () {
             return nbElm;
         },
@@ -32,6 +50,7 @@
             		_this.channel.open(r.token);
             	}
             });
+            get$n().removeClass("tile-notes stack-notes").addClass((hash.get("no")||"stack") + "-notes");
 
             $("#mainWrapper").on("click touchend", "[data-sort-by][data-type]", function(ev) {
                 var el = $(this),
@@ -71,27 +90,50 @@
             	_this.notebook["delete"]($(this).closest(".notebook").attr("data-notebook-id"));
             }).on("click touchend", ".deleteNote", function(ev) {
             	_this.note["delete"]($(this).closest(".note").attr("data-note-id"));
+            }).on("click touchend", ".editNotebookTitle", function(ev) {
+            	var el = $(this),
+            	$nb = el.closest(".notebook"),
+            	title = $nb.find(".notebook-title-link");
+            	title.replaceWith(textTemplate({
+            		text: title.text(),
+            		type: "notebook",
+            		id: nbElm.getId($nb)
+            	}));
             }).on("click touchend", ".logout", function(ev) {
             	window.location = "/pages/logout";
+            }).on("click touchend", ".notes-organization button", function(ev) {
+            	hash.add({
+            		no: $(this).attr("data-type")
+            	});
             }).on("click touchend", ".notebook-title-link", function(ev) {
             	var $nb = $(this).closest(".notebook"),
             	nbId = nbElm.getId($nb);
             	if (hash.get("nb") != nbId) {
-            		//TODO: need first note?
             		hash.add({
             			nb: nbId,
             			n: "",
             			a: ""
             		});
             	}
+            }).on("click", ".note", function(ev) {
+            	var el = $(this);
+            	if ($(ev.target).closest(".note-context-menu").length === 0) {
+            		hash.add({
+            			n: $(this).attr("data-note-id")
+            		});
+            	}
+            }).on("mousedown", ".notes .editable", function(ev) {
+            	//TODO: prevent text highlighting on dblclick
+            	//ev.preventDefault();
             }).on("dblclick", ".notes .editable", function(ev) {
+            	ev.preventDefault();
+            	ev.stopPropagation();
             	var el = $(this),
             	par = el.parent(),
             	temp = (el.hasClass("title") ? textTemplate : textareaTemplate),
             	nId = nElm.getId(el.closest(".note")),
             	text = $.trim(el.text());
 
-            	//el.addClass("editing-text");
             	var newEl = temp({
             		text: text,
             		type: "note",
@@ -101,22 +143,59 @@
             	hash.addOne("n", nId);
 
             	el.replaceWith(newEl);
-            	par.find(".editing-text").focus().val(text).text(text);
-            	par.find(".editing-text").get(0).setSelectionRange(text.length, text.length);
-            }).on("blur", ".notes .editing-text", function(ev) {
+
+            	var $t = par.find(".editing-text").focus().val(text).text(text);
+            	$t.get(0).setSelectionRange(text.length, text.length);
+            	resizeTextarea($t);
+
+            	return false;
+            }).on("blur", ".editing-text", function(ev) {
             	var el = $(this),
-            	$n = el.closest(".note"),
+            	changed = this.defaultValue !== this.value,
+            	type = el.attr("data-type"),
+            	$n = el.closest("." + type),
+            	elm = type === "note" ? nElm : nbElm,
             	prop = el.attr("data-parent-type"),
-            	val = el.val(),
-            	classStr = "editable " + el.attr("data-type") + "-" + prop + "-inline" + 
-            		(prop === "title" ? " title" : "");
-            	if (/content/i.test(prop)) {
-            		el.replaceWith("<p class='" + classStr + "' title='Double click to edit'>" + val + "</p>");
-            	} else {
-            		el.replaceWith("<span class='" + classStr + "' title='Double click to edit'>" + val + "</span>");
+            	val = el.val();
+
+            	if (this.parentNode) {
+            		$(this.parentNode).remove(".editing-text-hidden");
+            		if (/content/i.test(prop)) {
+            			el.replaceWith(contentTemplate({content: val}));
+            		} else {
+            			if (/note/i.test(type)) {
+            				el.replaceWith(titleTemplate({title: val}));
+            			} else {
+            				el.replaceWith(notebookTitleTemplate({title: val}));
+            			}
+            		}
             	}
-            	
-            	_this.note.save(nElm.getId($n), prop, val);
+
+            	if (changed) {
+            		_this[type].save(elm.getId($n), prop, val);
+            	}
+            }).on("keyup keydown keypress", ".editing-text.autoresize", function(ev) {
+            	var el = $(this);
+            	resizeTextarea(el);
+            }).on("keydown keypress keyup", ".editing-text", _.debounce(function(ev) {
+            	//makes sure hasn't been blurred
+            	if (this.parentNode) {
+            		var el = $(this),
+            		type = el.attr("data-type");
+            		_this[type].save(
+            				(/note/i.test(type) ? nElm : nbElm).getId(el.closest("." + type)),
+            				el.attr("data-parent-type"), //prop
+            				el.val());
+            	}
+            }, 2000)).on("mouseenter", ".note-edit-notebook", function(ev) {
+            	$(this).find("ul.dropdown-menu").html(noteNotebookTemp({
+            		notebooks: nbElm.elements,
+            		curNotebook: nElm.getNotebook($(this).closest(".note"))
+            	}));
+            }).on("click touchend", ".note-notebook-select", function(ev) {
+            	var el = $(this),
+            	$n = el.closest(".note");
+            	sticklet.note.save(nElm.getId($n), "notebook", el.attr("data-notebook-id"));
             });
             
             $(window).on("resize", _.debounce(resizeWindow, 250));
@@ -159,6 +238,10 @@
         	if ((changes.indexOf("sn") + changes.indexOf("snb") + changes.indexOf("snbd") + changes.indexOf("snd")) !== -4) {
         		_this.sort();
         	}
+        	
+        	if (changes.indexOf("no") !== -1) {
+        		get$n().removeClass("tile-notes stack-notes").addClass(newHash["no"] + "-notes");
+        	}
         },
         ajax: function(obj) {
         	if (obj.data) {
@@ -166,7 +249,20 @@
         			data: JSON.stringify(obj.data)
         		};
         	}
+        	var err = obj.error;
+        	obj.error = function(ev) {
+        		console.error(ev);
+        		if (/put|delete/i.test(type)) {
+        			sticklet.alert("Failed to " (/put/i.test(type) ? "save" : "delete") + " note/notebook", true);
+        		}
+        		if (typeof err === "function") {
+        			err.call(sticklet);
+        		} 
+        	};
         	return $.ajax(obj);
+        },
+        alert: function(msg, err, time) {
+        	alert(msg);
         },
         getColorPicker: function() {
         	return colorTemplate({colors: colors});
@@ -175,10 +271,10 @@
         	load: function() {
         		var nId = hash.get("n");
         		nElm.elements.removeClass("current").removeClass("editing");
-        		nElm.getById(nId).addClass("current").addClass(getEdit() ? "editing" : "");
-        		scrollTo(nElm.getById(nId));
+        		scrollTo(nElm.getById(nId).addClass("current"));
         	},
         	save: function(nId, prop, value) {
+        		log("saving note " + nId + ":", prop + "=" + value);
         		sticklet.ajax({
         			url: "/note/" + nId,
         			type: "put",
@@ -198,29 +294,44 @@
         		});
         	},
         	"delete": function(nId) {
-        		sticklet.ajax({
-        			url: "/note/" + nId,
-        			type: "delete"
-        		});
+        		if (confirm("Are you sure you want to delete this note?")) {
+        			log("deleting note " + nId);
+        			sticklet.ajax({
+        				url: "/note/" + nId,
+        				type: "delete"
+        			});
+        		}
         	},
         	created: function(note) {
         		var $notes = get$n();
         		if (hash.get("nb") == note.notebook) {
         			$notes.prepend(nElm.create(note));
-        			//sticklet.sort();
+        			sticklet.sort();
+        			hash.addOne("n", note.id);
         		}
         		updateNotebookNoteCount(note.notebook, true);
-        		if (hash.get("n") == note.id) {
-        			hash.addOne("n", $notes.find(".note:first").attr("data-note-id"));
-        		}
         	},
         	updated: function(note) {
-        		var el = nElm.getById(note.id);
-        		if (el.length === 0) {
-        			get$n().append(nElm.create(note));
-        		} else {
-        			//TODO: do this better
-        			el.replaceWith(nElm.create(note));
+        		var el = nElm.getById(note.id),
+        		hashes = hash.get();
+        		if (note.notebook == hashes["nb"]) {
+        			if (el.length === 0) {
+        				get$n().append(nElm.create(note));
+        				sticklet.sort();
+        			} else {
+        				if (el.find(".editing-text").length === 0) {
+        					el.replaceWith(nElm.create(note));
+        					if (hashes["n"] == note.id) {
+        						nElm.getById(note.id).addClass("current");
+        					}
+        				} else {
+        					log("editing...");
+        				}
+        			}
+        		} else if (el.length > 0) {
+        			el.remove();
+        			updateNotebookNoteCount(hashes["nb"], false);
+        			updateNotebookNoteCount(note.notebook, true);
         		}
         	},
         	deleted: function(note) {
@@ -243,7 +354,9 @@
         					_(data).each(function(notebook) {
         						$notebooks.append(nbElm.create(notebook));
         					});
-        					
+
+        					sticklet.sort();
+
         					if (nbId) {
         						sticklet.notebook.get(nbId);
         					} else if (data.length > 0) {
@@ -253,7 +366,6 @@
         							a: ""
         						});
         					}
-        					sticklet.sort();
         				}
         			}
         		});
@@ -280,6 +392,8 @@
         			_(notebook.notes).each(function(note) {
         				$notes.append(nElm.create(note));
         			});
+        			
+        			sticklet.sort();
 
         			if (nid) {
         				sticklet.note.load();
@@ -296,10 +410,10 @@
         					a: ""
         				});
         			}
-        			sticklet.sort();
         		}
         	},
         	save: function(nbId, prop, value) {
+        		log("saving notebook " + nbId + ":", prop + "=" + value);
         		sticklet.ajax({
         			url: "/notebook/" + nbId,
         			type: "put",
@@ -316,10 +430,14 @@
         		});
         	},
         	"delete": function(nbId) {
-        		sticklet.ajax({
-        			url: "/notebook/" + nbId,
-        			type: "delete"
-        		});
+        		if (confirm("Are you sure you want to delete this notebook? " +
+        				"It will delete the notebook and all the notes therein.")) {
+        			log("deleting note", nbId);
+        			sticklet.ajax({
+        				url: "/notebook/" + nbId,
+        				type: "delete"
+        			});
+        		}
         	},
         	created: function(notebook) {
         		get$nb().prepend(nbElm.create(notebook));
@@ -330,8 +448,10 @@
         		if (el.length === 0) {
         			get$nb().append(nbElm.create(notebook));
         		} else {
-        			//TODO: do this better
         			el.replaceWith(nbElm.create(notebook));
+        			if (hash.get("nb") == notebook.id) {
+        				nbElm.getById(notebook.id).addClass("current");
+        			}
         		}
         	},
         	deleted: function(notebook) {
@@ -343,8 +463,20 @@
         	connected: false,
         	channel: null,
         	socket: null,
+        	retries: 5,
+        	retry: 0,
+        	getToken: function() {
+        		sticklet.ajax({
+        			url: "/pages",
+        			type: "get",
+        			success: function(r) {
+        				sticklet.channel.open(r.token);
+        			}
+        		});
+        	},
         	open: function(token) {
         		var _this = this;
+        		log("token:", token);
         		_this.channel = new goog.appengine.Channel(token);
         		_this.socket = _this.channel.open();
         		$.extend(_this.socket, _this.socketEvents);
@@ -354,8 +486,10 @@
         	},
         	socketEvents: {
         		onopen: function() {
+        			log("channel opened");
         			var _this = this;
         			_this.connected = true;
+        			sticklet.channel.retry = 0;
         		},
         		onmessage: function(m) {
         			var data = JSON.parse(m.data),
@@ -364,17 +498,16 @@
         				fn.call(sticklet, data.data);
         			}
         		},
-        		onclose: (function() {
-        			var retry = 10,
-        			retries = 0;
-        			return function() {
-        				console.log("bye");
-        				if (retries < retry) {
-        					sticklet.channel.open();
-        					retries++;
-        				}
-        			};
-        		}())
+        		onclose: function() {
+        			log("channel closed");
+        			if (sticklet.channel.retries > sticklet.channel.retry) {
+        				sticklet.channel.retry++;
+        				sticklet.channel.getToken();
+        			}
+        		},
+        		onerror: function() {
+        			log(arguments);
+        		}
         	}
         }
     };
@@ -443,6 +576,10 @@
     }
     function get$nb() {
     	return $("#mainWrapper .notebooks");
+    }
+    function resizeTextarea(el) {
+    	el = $(el);
+    	el.height(el.prev(".editing-text-hidden").text(el.val()).height());
     }
     
     window.sticklet = sticklet;

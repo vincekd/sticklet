@@ -62,6 +62,8 @@ public class NotebookActionBean extends BaseActionBean {
 			if (success) {
 				notebookDao.save(notebook);
 				ChannelUtil.pushToUser(user, "notebook.updated", notebook.toHashMap());
+			} else {
+				setResponseBad();
 			}
 		}
 		return null;

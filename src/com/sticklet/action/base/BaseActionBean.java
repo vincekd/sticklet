@@ -104,8 +104,12 @@ public abstract class BaseActionBean implements ActionBean {
         return new RedirectResolution(url);
     }
 
-	public void setResponseNotFound() {
+	protected void setResponseNotFound() {
 		context.getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
+	}
+	
+	protected void setResponseBad() {
+		context.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	}
 
 	public ActionBeanContext getContext() {
@@ -136,6 +140,11 @@ public abstract class BaseActionBean implements ActionBean {
 		//}
 		//logger.info("final user" + user.toString());
 	}
+	
+//	@Override
+//	public void getSourcePageResolution() {
+//		
+//	}
 	
 	private Resolution logout() {
 		return redirect(userService.createLoginURL("/"));	

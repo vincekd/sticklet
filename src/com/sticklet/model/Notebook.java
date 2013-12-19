@@ -47,7 +47,7 @@ public class Notebook extends BaseModel {
 		return null;
 	}
 
-	String title = "New Notebook";
+	String title;
 	public void setTitle(String title) {
 		this.title = title;
 	}
