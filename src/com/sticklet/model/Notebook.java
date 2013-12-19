@@ -94,10 +94,7 @@ public class Notebook extends BaseModel {
 
 	public HashMap<String, Object> toHashMap() {
 		HashMap<String, Object> map = super.toHashMap();
-		Ref<Notebook> notebookRef = Ref.create(this);
-		map.put("noteCount", this.id != null ? noteDao.findCountBy("notebook", notebookRef) : 0);
-		//Note note = noteDao.findBy("notebook", notebookRef);
-		//map.put("firstNote", note != null ? note.getId() : null);
+		map.put("noteCount", this.id != null ? noteDao.findCountBy("notebook", Ref.create(this)) : 0);
 		return map;
 	}
 }
