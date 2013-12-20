@@ -126,7 +126,7 @@
 						</div>
 						<div class="span2">
 							<button class="btn createNote pull-right">
-								<span>new note</span>
+								<span>new sticklet</span>
 							</button>
 						</div>
 					</div>
@@ -262,13 +262,13 @@
       </div>
     </script>
     <script type="text/template" id="noteTitleTemplate">
-		<span class="note-title-inline editable title" tabindex="-1" title="Double click to edit"><%= title %></span>
+		<span class="note-title-inline editable title" tabindex="-1" title="Double click to edit"><%= title||"<span class='default-content'>sticklet</span>" %></span>
 	</script>
     <script type="text/template" id="noteContentTemplate">
-		<p class="note-content-inline editable" tabindex="-1" title="Double click to edit"><%= content %></p>
+		<p class="note-content-inline editable" tabindex="-1" title="Double click to edit"><%= content||"<span class='default-content'>sticklet content</span>" %></p>
 	</script>
 	<script type="text/template" id="notebookTitleTemplate">
-		<a href="javascript:void(0);" class="notebook-title-link editable title" title="double click to edit"><%= title||"new notebook" %></a>
+		<a href="javascript:void(0);" class="notebook-title-link editable title" title="double click to edit"><%= title||"<span class='default-content'>sticklets</span>" %></a>
 	</script>
     <script type="text/template" id="textareaTemplate">
 		<div class="hide editing-text-hidden textbox span12"><%= text %></div>

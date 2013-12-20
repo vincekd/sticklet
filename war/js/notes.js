@@ -1,6 +1,6 @@
 (function($, _, hash, undefined) {
     "use strict";
-    var debug = true,
+    var debug = false,
     log = function() {
     	if (debug)
     		console.log.apply(console, (Array.prototype.slice.apply(arguments)));
@@ -95,10 +95,11 @@
             	$nb = el.closest(".notebook"),
             	title = $nb.find(".notebook-title-link");
             	title.replaceWith(textTemplate({
-            		text: title.text(),
+            		text: title.find(".default-content").length > 0 ? "" : title.text(),
             		type: "notebook",
             		id: nbElm.getId($nb)
             	}));
+            	$nb.find(".notebook-title input.textbox").focus();
             }).on("click touchend", ".logout", function(ev) {
             	window.location = "/pages/logout";
             }).on("click touchend", ".notes-organization button", function(ev) {
@@ -130,9 +131,13 @@
             	ev.stopPropagation();
             	var el = $(this),
             	par = el.parent(),
+            	text = $.trim(el.text()),
             	temp = (el.hasClass("title") ? textTemplate : textareaTemplate),
-            	nId = nElm.getId(el.closest(".note")),
-            	text = $.trim(el.text());
+            	nId = nElm.getId(el.closest(".note"));
+
+            	if (el.find(".default-content").length > 0) {
+            		text = "";
+            	}
 
             	var newEl = temp({
             		text: text,
@@ -303,12 +308,13 @@
         		}
         	},
         	created: function(note) {
-        		var $notes = get$n();
-        		if (hash.get("nb") == note.notebook) {
+        		var $notes = get$n(),
+        		nb = hash.get("nb");
+        		if (nb == note.notebook) {
         			$notes.prepend(nElm.create(note));
         			sticklet.sort();
         			hash.addOne("n", note.id);
-        		}
+        		} 
         		updateNotebookNoteCount(note.notebook, true);
         	},
         	updated: function(note) {
@@ -441,6 +447,12 @@
         	},
         	created: function(notebook) {
         		get$nb().prepend(nbElm.create(notebook));
+        		var nb = hash.get("nb");
+        		if (!nb || nbElm.getById(nb).length === 0 || nb == notebook.id) {
+        			hash.add({
+        				nb: notebook.id
+        			});
+        		} 
         		//sticklet.sort();
         	},
         	updated: function(notebook) {
@@ -457,6 +469,11 @@
         	deleted: function(notebook) {
         		nbElm.getById(notebook.id).remove();
         		nElm.getByNotebook(notebook.id).remove();
+        		if (hash.get("nb") == notebook.id) {
+        			hash.add({
+        				nb: (nbElm.getId(nbElm.first)||"")
+        			});
+        		}
         	},
         },
         channel: {
